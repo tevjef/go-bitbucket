@@ -29,7 +29,7 @@ func (p *PullRequests) Gets(po *PullRequestsOptions) (interface{}, error) {
 }
 
 func (p *PullRequests) Get(po *PullRequestsOptions) (interface{}, error) {
-	urlStr := GetApiBaseURL() + "/repositories/" + po.Owner + "/" + po.Repo_slug + "/pullrequests/" + po.Id
+	urlStr := GetApiBaseURL() + "/repositories/" + po.Owner + "/" + po.Repo_slug + "/pullrequests/" + po.Id + "?" + po.Query.Encode()
 	return p.c.execute("GET", urlStr, "")
 }
 

@@ -1,5 +1,9 @@
 package bitbucket
 
+import (
+	"net/url"
+)
+
 var apiBaseURL = "https://bitbucket.org/api/2.0"
 
 func GetApiBaseURL() string {
@@ -124,6 +128,7 @@ type PullRequestsOptions struct {
 	Destination_commit  string   `json:"destination_repository"`
 	Message             string   `json:"message"`
 	Reviewers           []string `json:"reviewers"`
+	Query               url.Values
 }
 
 type CommitsOptions struct {
