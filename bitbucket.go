@@ -10,6 +10,18 @@ func GetApiBaseURL() string {
 	return apiBaseURL
 }
 
+var v1ApiBaseURL = "https://bitbucket.org/!api/1.0"
+
+func GetV1ApiBaseURL() string {
+	return v1ApiBaseURL
+}
+
+var internalApiBaseURL = "https://bitbucket.org/!api/internal"
+
+func GetInternalApiBaseURL() string {
+	return internalApiBaseURL
+}
+
 func SetApiBaseURL(urlStr string) {
 	apiBaseURL = urlStr
 }
@@ -129,6 +141,10 @@ type PullRequestsOptions struct {
 	Message             string   `json:"message"`
 	Reviewers           []string `json:"reviewers"`
 	Query               url.Values
+	CommentContent      string
+	TaskID              string
+	TaskContent         string
+	TaskResolved        *bool
 }
 
 type CommitsOptions struct {

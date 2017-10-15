@@ -2,7 +2,7 @@ package bitbucket
 
 import (
 	"encoding/json"
-	"os"
+	"log"
 
 	"github.com/k0kubun/pp"
 )
@@ -80,6 +80,98 @@ func (p *PullRequests) GetComment(po *PullRequestsOptions) (interface{}, error) 
 	return p.c.execute("GET", urlStr, "")
 }
 
+func (p *PullRequests) CreateComment(po *PullRequestsOptions) (interface{}, error) {
+	data := p.buildCommentBody(po)
+	urlStr := GetV1ApiBaseURL() + "/repositories/" + po.Owner + "/" + po.Repo_slug + "/pullrequests/" + po.Id + "/comments/"
+	return p.c.execute("POST", urlStr, data)
+}
+
+func (p *PullRequests) UpdateComment(po *PullRequestsOptions) (interface{}, error) {
+	data := p.buildCommentBody(po)
+	urlStr := GetV1ApiBaseURL() + "/repositories/" + po.Owner + "/" + po.Repo_slug + "/pullrequests/" + po.Id + "/comments/" + po.Comment_id
+	return p.c.execute("PUT", urlStr, data)
+}
+
+func (p *PullRequests) DeleteComment(po *PullRequestsOptions) (interface{}, error) {
+	urlStr := GetV1ApiBaseURL() + "/repositories/" + po.Owner + "/" + po.Repo_slug + "/pullrequests/" + po.Id + "/comments/" + po.Comment_id
+	return p.c.execute("DELETE", urlStr, "")
+}
+
+func (p *PullRequests) CreateTask(po *PullRequestsOptions) (interface{}, error) {
+	data := p.buildTaskBody(po)
+	urlStr := GetInternalApiBaseURL() + "/repositories/" + po.Owner + "/" + po.Repo_slug + "/pullrequests/" + po.Id + "/tasks/"
+	return p.c.execute("POST", urlStr, data)
+}
+
+func (p *PullRequests) UpdateTask(po *PullRequestsOptions) (interface{}, error) {
+	data := p.buildTaskBody(po)
+	urlStr := GetInternalApiBaseURL() + "/repositories/" + po.Owner + "/" + po.Repo_slug + "/pullrequests/" + po.Id + "/tasks/" + po.TaskID
+	return p.c.execute("PUT", urlStr, data)
+}
+
+func (p *PullRequests) DeleteTask(po *PullRequestsOptions) (interface{}, error) {
+	urlStr := GetInternalApiBaseURL() + "/repositories/" + po.Owner + "/" + po.Repo_slug + "/pullrequests/" + po.Id + "/tasks/" + po.TaskID
+	return p.c.execute("DELETE", urlStr, "")
+}
+
+func (p *PullRequests) buildCommentBody(po *PullRequestsOptions) string {
+	type commentBody struct {
+		Content string `json:"content,omitempty"`
+	}
+
+	body := commentBody{
+		Content: po.CommentContent,
+	}
+
+	data, err := json.Marshal(body)
+	if err != nil {
+		pp.Println(err)
+	}
+
+	log.Println("comment body", string(data))
+	return string(data)
+}
+
+func (p *PullRequests) buildTaskBody(po *PullRequestsOptions) string {
+	type content struct {
+		Raw string `json:"raw,omitempty"`
+	}
+	type comment struct {
+		Id string `json:"id,omitempty"`
+	}
+
+	type taskBody struct {
+		Content content `json:"content,omitempty"`
+		Comment comment `json:"comment,omitempty"`
+		State   string  `json:"state,omitempty"`
+	}
+
+	body := taskBody{
+		Content: content{
+			Raw: po.TaskContent,
+		},
+		Comment: comment{
+			Id: po.Comment_id,
+		},
+	}
+
+	if po.TaskResolved != nil {
+		if *po.TaskResolved {
+			body.State = "RESOLVED"
+		} else {
+			body.State = "UNRESOLVED"
+		}
+	}
+
+	data, err := json.Marshal(body)
+	if err != nil {
+		pp.Println(err)
+	}
+
+	log.Println("task body", string(data))
+	return string(data)
+}
+
 func (p *PullRequests) buildPullRequestBody(po *PullRequestsOptions) string {
 
 	body := map[string]interface{}{}
@@ -132,7 +224,6 @@ func (p *PullRequests) buildPullRequestBody(po *PullRequestsOptions) string {
 	data, err := json.Marshal(body)
 	if err != nil {
 		pp.Println(err)
-		os.Exit(9)
 	}
 
 	return string(data)
