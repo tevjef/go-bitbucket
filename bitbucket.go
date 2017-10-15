@@ -2,6 +2,7 @@ package bitbucket
 
 import (
 	"net/url"
+	"time"
 )
 
 var apiBaseURL = "https://bitbucket.org/api/2.0"
@@ -184,4 +185,70 @@ type WebhooksOptions struct {
 	Url         string   `json:"url"`
 	Active      bool     `json:"active"`
 	Events      []string `json:"events"` // EX) {'repo:push','issue:created',..} REF) https://goo.gl/VTj93b
+}
+
+type Comment struct {
+	DisplayName     string `json:"display_name,omitempty"`
+	ParentID        int    `json:"parent_id,omitempty"`
+	Content         string `json:"content,omitempty"`
+	ContentRendered string `json:"content_rendered,omitempty"`
+	UserAvatarURL   string `json:"user_avatar_url,omitempty"`
+	UtcCreatedOn    string `json:"utc_created_on,omitempty"`
+	Username        string `json:"username,omitempty"`
+	Deleted         bool   `json:"deleted,omitempty"`
+	CommentID       int    `json:"comment_id,omitempty"`
+	Comparespec     string `json:"comparespec,omitempty"`
+	LineTo          string `json:"line_to,omitempty"`
+	IsSpam          bool   `json:"is_spam,omitempty"`
+	PullRequestID   int    `json:"pull_request_id,omitempty"`
+	UtcLastUpdated  string `json:"utc_last_updated,omitempty"`
+	IsEntityAuthor  bool   `json:"is_entity_author,omitempty"`
+	ConvertMarkup   bool   `json:"convert_markup,omitempty"`
+	LineFrom        string `json:"line_from,omitempty"`
+	DestRev         string `json:"dest_rev,omitempty"`
+	Anchor          string `json:"anchor,omitempty"`
+	IsRepoOwner     bool   `json:"is_repo_owner,omitempty"`
+}
+
+type Task struct {
+	Comment   TaskComment `json:"comment,omitempty"`
+	Links     Links       `json:"links,omitempty"`
+	Creator   Author      `json:"creator,omitempty"`
+	CreatedOn time.Time   `json:"created_on,omitempty"`
+	Content   TaskContent `json:"content,omitempty"`
+	State     string      `json:"state,omitempty"`
+	UpdatedOn time.Time   `json:"updated_on,omitempty"`
+	ID        int         `json:"id,omitempty"`
+}
+
+type TaskComment struct {
+	Id    int   `json:"id,omitempty"`
+	Links Links `json:"links"`
+}
+
+type TaskContent struct {
+	Raw    string `json:"raw"`
+	Markup string `json:"markup"`
+	HTML   string `json:"html"`
+}
+
+type Links struct {
+	HTML HTML `json:"html"`
+	Self Self `json:"self"`
+}
+
+type HTML struct {
+	Href string `json:"href"`
+}
+
+type Self struct {
+	Self string `json:"href"`
+}
+
+type Author struct {
+	DisplayName string `json:"display_name"`
+	Type        string `json:"type"`
+	Username    string `json:"username"`
+	UUID        string `json:"uuid"`
+	Links       Links  `json:"links"`
 }

@@ -2,7 +2,7 @@ package bitbucket
 
 import (
 	"encoding/json"
-	"log"
+	"strconv"
 
 	"github.com/k0kubun/pp"
 )
@@ -80,10 +80,23 @@ func (p *PullRequests) GetComment(po *PullRequestsOptions) (interface{}, error) 
 	return p.c.execute("GET", urlStr, "")
 }
 
-func (p *PullRequests) CreateComment(po *PullRequestsOptions) (interface{}, error) {
+func (p *PullRequests) CreateComment(po *PullRequestsOptions) (*Comment, error) {
 	data := p.buildCommentBody(po)
 	urlStr := GetV1ApiBaseURL() + "/repositories/" + po.Owner + "/" + po.Repo_slug + "/pullrequests/" + po.Id + "/comments/"
-	return p.c.execute("POST", urlStr, data)
+	resp, err := p.c.execute("POST", urlStr, data)
+
+	respData, err := json.Marshal(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	comment := Comment{}
+	err = json.Unmarshal(respData, &comment)
+	if err != nil {
+		return nil, err
+	}
+
+	return &comment, nil
 }
 
 func (p *PullRequests) UpdateComment(po *PullRequestsOptions) (interface{}, error) {
@@ -97,29 +110,59 @@ func (p *PullRequests) DeleteComment(po *PullRequestsOptions) (interface{}, erro
 	return p.c.execute("DELETE", urlStr, "")
 }
 
-func (p *PullRequests) CreateTask(po *PullRequestsOptions) (interface{}, error) {
+func (p *PullRequests) CreateTask(po *PullRequestsOptions) (*Task, error) {
 	data := p.buildTaskBody(po)
 	urlStr := GetInternalApiBaseURL() + "/repositories/" + po.Owner + "/" + po.Repo_slug + "/pullrequests/" + po.Id + "/tasks/"
-	return p.c.execute("POST", urlStr, data)
+
+	resp, err := p.c.execute("POST", urlStr, data)
+	if err != nil {
+		return nil, err
+	}
+
+	respData, err := json.Marshal(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	task := Task{}
+	err = json.Unmarshal(respData, &task)
+	if err != nil {
+		return nil, err
+	}
+
+	return &task, nil
 }
 
-func (p *PullRequests) UpdateTask(po *PullRequestsOptions) (interface{}, error) {
+func (p *PullRequests) UpdateTask(po *PullRequestsOptions) (*Task, error) {
 	data := p.buildTaskBody(po)
 	urlStr := GetInternalApiBaseURL() + "/repositories/" + po.Owner + "/" + po.Repo_slug + "/pullrequests/" + po.Id + "/tasks/" + po.TaskID
-	return p.c.execute("PUT", urlStr, data)
+
+	resp, err := p.c.execute("PUT", urlStr, data)
+	if err != nil {
+		return nil, err
+	}
+
+	respData, err := json.Marshal(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	task := Task{}
+	err = json.Unmarshal(respData, &task)
+	if err != nil {
+		return nil, err
+	}
+
+	return &task, nil
 }
 
-func (p *PullRequests) DeleteTask(po *PullRequestsOptions) (interface{}, error) {
-	urlStr := GetInternalApiBaseURL() + "/repositories/" + po.Owner + "/" + po.Repo_slug + "/pullrequests/" + po.Id + "/tasks/" + po.TaskID
-	return p.c.execute("DELETE", urlStr, "")
+func (p *PullRequests) GetTasks(po *PullRequestsOptions) (interface{}, error) {
+	urlStr := GetInternalApiBaseURL() + "/repositories/" + po.Owner + "/" + po.Repo_slug + "/pullrequests/" + po.Id + "/tasks/" + "?comment=" + po.Comment_id
+	return p.c.execute("GET", urlStr, "")
 }
 
 func (p *PullRequests) buildCommentBody(po *PullRequestsOptions) string {
-	type commentBody struct {
-		Content string `json:"content,omitempty"`
-	}
-
-	body := commentBody{
+	body := Comment{
 		Content: po.CommentContent,
 	}
 
@@ -128,30 +171,17 @@ func (p *PullRequests) buildCommentBody(po *PullRequestsOptions) string {
 		pp.Println(err)
 	}
 
-	log.Println("comment body", string(data))
 	return string(data)
 }
 
 func (p *PullRequests) buildTaskBody(po *PullRequestsOptions) string {
-	type content struct {
-		Raw string `json:"raw,omitempty"`
-	}
-	type comment struct {
-		Id string `json:"id,omitempty"`
-	}
-
-	type taskBody struct {
-		Content content `json:"content,omitempty"`
-		Comment comment `json:"comment,omitempty"`
-		State   string  `json:"state,omitempty"`
-	}
-
-	body := taskBody{
-		Content: content{
+	id, _ := strconv.Atoi(po.Comment_id)
+	body := Task{
+		Content: TaskContent{
 			Raw: po.TaskContent,
 		},
-		Comment: comment{
-			Id: po.Comment_id,
+		Comment: TaskComment{
+			Id: id,
 		},
 	}
 
@@ -168,7 +198,6 @@ func (p *PullRequests) buildTaskBody(po *PullRequestsOptions) string {
 		pp.Println(err)
 	}
 
-	log.Println("task body", string(data))
 	return string(data)
 }
 
